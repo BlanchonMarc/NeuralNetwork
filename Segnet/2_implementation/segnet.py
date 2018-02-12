@@ -25,7 +25,6 @@ class SegNet(nn.Module):
 
         self.type = ['encoder'] * 5
         self.type += ['decoder'] * 5
-        print(self.type)
 
         #############
         # ENCODER
@@ -73,6 +72,8 @@ class SegNet(nn.Module):
         # Block2, decoder, 64 -> label_nbr
         self.block10 = self.Block(64, label_nbr, self.conv_length[9],
         self.type[9])
+
+        self.parameters = []
 
     def Block(self, input_size, output_size, block_size, identifier):
 
@@ -175,8 +176,7 @@ target = autograd.Variable(torch.rand(batch_size, num_classes, nb, nb)).long()
 
 model = SegNet(input_nbr=input_size, label_nbr=num_classes)
 
-print(model.parameters())
-opt = optim.Adam(params=model.params, lr=learning_rate)
+opt = optim.Adam(params=model.conv, lr=learning_rate)
 
 
 for epoch in range(5):

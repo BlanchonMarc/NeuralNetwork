@@ -161,7 +161,6 @@ target = autograd.Variable(torch.rand(batch_size, num_classes, nb, nb)).long()
 
 model = SegNet(input_nbr=input_size, label_nbr=num_classes)
 
-print(model.parameters())
 opt = optim.Adam(params=model.parameters(), lr=learning_rate)
 
 
