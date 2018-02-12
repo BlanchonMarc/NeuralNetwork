@@ -1,167 +1,44 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from collections import OrderedDict
-from torch import autograd
-from torch import optim
-import numpy as np
+import torch.nn as nn
+from torch import autograd, optim
+
+from modules import *
 
 
-class SegNet(nn.Module):
+class segnet(nn.Module):
 
-    def __init__(self, input_nbr, label_nbr):
-        super(SegNet, self).__init__()
+    def __init__(self, in_channels, n_classes):
+        super(segnet, self).__init__()
 
-        self.batchNorm_momentum = 0.1
-        self.kernel_size = 3
-        self.conv_padding = 1
+        self.layer_1 = segnetDown2(in_channels, 64)
+        self.layer_2 = segnetDown2(64, 128)
+        self.layer_3 = segnetDown3(128, 256)
+        self.layer_4 = segnetDown3(256, 512)
+        self.layer_5 = segnetDown3(512, 512)
 
-        self.maxPooling_KernelSize = 2
+        self.layer_6 = segnetUp3(512, 512)
+        self.layer_7 = segnetUp3(512, 256)
+        self.layer_8 = segnetUp3(256, 128)
+        self.layer_9 = segnetUp2(128, 64)
+        self.layer_10 = segnetUp2(64, n_classes)
 
-        self.conv = []
-        self.batch = []
+    def forward(self, inputs):
 
-        self.conv_length = [2, 2, 3, 3, 3, 3, 3, 3, 2, 1]
+        down1, indices_1, unpool_shape1 = self.layer_1(inputs)
+        down2, indices_2, unpool_shape2 = self.layer_2(down1)
+        down3, indices_3, unpool_shape3 = self.layer_3(down2)
+        down4, indices_4, unpool_shape4 = self.layer_4(down3)
+        down5, indices_5, unpool_shape5 = self.layer_5(down4)
 
-        self.type = ['encoder'] * 5
-        self.type += ['decoder'] * 5
+        up5 = self.layer_6(down5, indices_5, unpool_shape5)
+        up4 = self.layer_7(up5, indices_4, unpool_shape4)
+        up3 = self.layer_8(up4, indices_3, unpool_shape3)
+        up2 = self.layer_9(up3, indices_2, unpool_shape2)
+        up1 = self.layer_10(up2, indices_1, unpool_shape1)
 
-        #############
-        # ENCODER
-        #############
-        # Block2, encoder, input_size -> 64
-        self.block1 = self.Block(input_nbr, 64, self.conv_length[0],
-        self.type[0])
-
-        # Block2, encoder, 64 -> 128
-        self.block2 = self.Block(64, 128, self.conv_length[1],
-        self.type[1])
-
-        # Block3, encoder, 128 -> 256
-        self.block3 = self.Block(128, 256, self.conv_length[2],
-        self.type[2])
-
-        # Block3, encoder, 256 -> 512
-        self.block4 = self.Block(256, 512, self.conv_length[3],
-        self.type[3])
-
-        # Block3, encoder, 512 -> 512
-        self.block5 = self.Block(512, 512, self.conv_length[4],
-        self.type[4])
-
-        ###############
-        # DECODER
-        ###############
-
-        # Block3, decoder, 512 -> 512
-        self.block6 = self.Block(512, 512, self.conv_length[5],
-        self.type[5])
-
-        # Block3, decoder, 512 -> 256
-        self.block7 = self.Block(512, 256, self.conv_length[6],
-        self.type[6])
-
-        # Block3, decoder, 256 -> 128
-        self.block8 = self.Block(256, 128, self.conv_length[7],
-        self.type[7])
-
-        # Block2, decoder, 128 -> 64
-        self.block9 = self.Block(128, 64, self.conv_length[8],
-        self.type[8])
-
-        # Block2, decoder, 64 -> label_nbr
-        self.block10 = self.Block(64, label_nbr, self.conv_length[9],
-        self.type[9])
-
-        self.parameters = []
-
-    def Block(self, input_size, output_size, block_size, identifier):
-
-        for i in range(0, block_size):
-
-            if block_size == 1 and identifier == 'decoder':
-                self.conv.append(nn.Conv2d(input_size, output_size,
-                kernel_size=self.kernel_size,
-                padding=self.conv_padding))
-
-                self.batch.append(nn.BatchNorm2d(output_size,
-                momentum=self.batchNorm_momentum))
-
-                self.conv.append(nn.Conv2d(output_size, output_size,
-                kernel_size=self.kernel_size,
-                padding=self.conv_padding))
-
-            else:
-                if identifier == 'encoder':
-                    if i > 0:
-                        self.conv.append(nn.Conv2d(output_size,
-                        output_size, kernel_size=self.kernel_size,
-                        padding=self.conv_padding))
-
-                    else:
-                        self.conv.append(nn.Conv2d(input_size,
-                        output_size, kernel_size=self.kernel_size,
-                        padding=self.conv_padding))
-
-                    self.batch.append(nn.BatchNorm2d(output_size,
-                    momentum=self.batchNorm_momentum))
-
-                else:
-                        if i > block_size - 2:
-                            self.conv.append(nn.Conv2d(input_size,
-                            output_size, kernel_size=self.kernel_size,
-                            padding=self.conv_padding))
-
-                            self.batch.append(nn.BatchNorm2d(output_size,
-                            momentum=self.batchNorm_momentum))
-                        else:
-                            self.conv.append(nn.Conv2d(input_size,
-                            input_size, kernel_size=self.kernel_size,
-                            padding=self.conv_padding))
-
-                            self.batch.append(nn.BatchNorm2d(input_size,
-                            momentum=self.batchNorm_momentum))
-
-        print(len(self.conv))
-
-    def forward(self, x):
-        storing_firstInput = x
-        print(len(self.conv))
-        store_input = x
-        store_start = 0
-        store_maxpoolindex = []
-        tracker = 1
-        for ind in range(0, len(self.conv_length)):
-
-            store_end = store_start + self.conv_length[ind]
-
-            if self.type[ind] == 'decoder':
-
-                print('index maxpool : ', (ind - tracker))
-                store_input = F.max_unpool2d(store_input,
-                store_maxpoolindex[ind - tracker],
-                    kernel_size=self.maxPooling_KernelSize, stride=2)
-                tracker = tracker + 2
-                print('tracker', tracker)
-
-            for indx in range(store_start, store_end):
-                store_input = F.relu(self.batch[indx](
-                    self.conv[indx](store_input)))
-                print(self.conv[indx])
-
-            if self.type[ind] == 'encoder':
-
-                store_input, index = F.max_pool2d(store_input,
-                kernel_size=self.maxPooling_KernelSize, stride=2,
-                return_indices=True)
-                store_maxpoolindex.append(index)
-                print('Index Size', index.size())
-                print('len, storage index', len(store_maxpoolindex))
-
-            print(store_input.size())
-            store_start = store_end
-
-        return F.softmax(store_input, dim=2)
+        return up1
 
 
 # Execution
@@ -174,12 +51,13 @@ nb = 64
 input = autograd.Variable(torch.rand(batch_size, input_size, nb, nb))
 target = autograd.Variable(torch.rand(batch_size, num_classes, nb, nb)).long()
 
-model = SegNet(input_nbr=input_size, label_nbr=num_classes)
 
-opt = optim.Adam(params=model.conv, lr=learning_rate)
+model = segnet(in_channels=input_size, n_classes=num_classes)
+
+opt = optim.Adam(params=model.parameters(), lr=learning_rate)
 
 
-for epoch in range(5):
+for epoch in range(100):
     out = model(input)
 
     loss = F.cross_entropy(out, target[:, 0])
