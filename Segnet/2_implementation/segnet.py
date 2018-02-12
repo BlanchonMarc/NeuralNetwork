@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn as nn
 from torch import autograd, optim
-
 from modules import *
 
 
@@ -70,7 +69,7 @@ opt = optim.Adam(params=model.parameters(), lr=learning_rate)
 for epoch in range(100):
     out = model(input)
 
-    loss = F.cross_entropy(out, target[:, 0])
+    loss = F.nll_loss(out, target[:, 0])
 
     print ('Loss : ' + str(loss.data))
 
