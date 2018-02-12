@@ -80,14 +80,14 @@ class SegNet(nn.Module):
         for i in range(0, block_size):
 
             if block_size == 1 and identifier == 'decoder':
-                self.conv.append(nn.Conv2d(input_size, input_size,
+                self.conv.append(nn.Conv2d(input_size, output_size,
                 kernel_size=self.kernel_size,
                 padding=self.conv_padding))
 
-                self.batch.append(nn.BatchNorm2d(input_size,
+                self.batch.append(nn.BatchNorm2d(output_size,
                 momentum=self.batchNorm_momentum))
 
-                self.conv.append(nn.Conv2d(input_size, output_size,
+                self.conv.append(nn.Conv2d(output_size, output_size,
                 kernel_size=self.kernel_size,
                 padding=self.conv_padding))
 
@@ -170,6 +170,7 @@ input_size = 8
 num_classes = 8
 
 nb = 64
+
 input = autograd.Variable(torch.rand(batch_size, input_size, nb, nb))
 
 
@@ -177,3 +178,16 @@ model = SegNet(input_nbr=input_size, label_nbr=num_classes)
 out = model(input)
 
 print('out', out)
+
+target = autograd.Variable(torch.rand(batch_size, num_classes, nb, nb))
+
+# error = target - out
+
+# print('error', error)
+
+# Loss Computation
+loss = nn.L1Loss()
+
+output_loss = loss(out, target)
+
+print ('Loss : ' + str(output_loss.data))
