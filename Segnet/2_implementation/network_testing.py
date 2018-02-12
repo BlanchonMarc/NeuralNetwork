@@ -16,10 +16,15 @@ model = segnet(in_channels=input_size, n_classes=num_classes)
 opt = optim.Adam(params=model.parameters(), lr=learning_rate)
 
 
-for epoch in range(100):
+for epoch in range(2):
     out = model(input)
 
-    loss = F.nll_loss(out, target[:, 0])
+    # Loss definition - cross entropy
+    criterion = nn.CrossEntropyLoss()
+    loss = criterion(out, target[:, 0])
+
+    # nll loss
+    # loss = F.nll_loss(out, target[:, 0])
 
     print ('Loss : ' + str(loss.data))
 
