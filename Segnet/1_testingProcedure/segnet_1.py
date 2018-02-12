@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from collections import OrderedDict
 from torch import autograd
+from torch import optim
 
 
 class SegNet(nn.Module):
@@ -134,16 +135,44 @@ class SegNet(nn.Module):
         return F.softmax(x11d)
 
 
-batch_size = 64
-input_size = 256
-#hidden_size =
+# batch_size = 64
+# input_size = 256
+# #hidden_size =
+# num_classes = 8
+#
+# nb = 64
+# input = autograd.Variable(torch.rand(batch_size,input_size,256,256))
+# #print('input',input)
+#
+# model = SegNet(input_nbr = input_size,label_nbr = num_classes)
+# out = model(input)
+#
+# print('out',out)
+
+# Execution
+batch_size = 1
+input_size = 8
 num_classes = 8
-
+learning_rate = 0.0001
 nb = 64
-input = autograd.Variable(torch.rand(batch_size,input_size,256,256))
-#print('input',input)
 
-model = SegNet(input_nbr = input_size,label_nbr = num_classes)
-out = model(input)
+input = autograd.Variable(torch.rand(batch_size, input_size, nb, nb))
+target = autograd.Variable(torch.rand(batch_size, num_classes, nb, nb)).long()
 
-print('out',out)
+model = SegNet(input_nbr=input_size, label_nbr=num_classes)
+
+print(model.parameters())
+opt = optim.Adam(params=model.parameters(), lr=learning_rate)
+
+
+for epoch in range(100):
+    out = model(input)
+
+    loss = F.cross_entropy(out, target[:, 0])
+
+    print ('Loss : ' + str(loss.data))
+
+    model.zero_grad()
+    loss.backward()
+
+    opt.step()

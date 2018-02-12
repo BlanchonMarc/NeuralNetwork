@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from collections import OrderedDict
 from torch import autograd
+from torch import optim
 import numpy as np
 
 
@@ -72,8 +73,6 @@ class SegNet(nn.Module):
         # Block2, decoder, 64 -> label_nbr
         self.block10 = self.Block(64, label_nbr, self.conv_length[9],
         self.type[9])
-
-        print(self.conv)
 
     def Block(self, input_size, output_size, block_size, identifier):
 
@@ -168,26 +167,26 @@ class SegNet(nn.Module):
 batch_size = 1
 input_size = 8
 num_classes = 8
-
+learning_rate = 0.0001
 nb = 64
 
 input = autograd.Variable(torch.rand(batch_size, input_size, nb, nb))
-
+target = autograd.Variable(torch.rand(batch_size, num_classes, nb, nb)).long()
 
 model = SegNet(input_nbr=input_size, label_nbr=num_classes)
-out = model(input)
 
-print('out', out)
+print(model.parameters())
+opt = optim.Adam(params=model.params, lr=learning_rate)
 
-target = autograd.Variable(torch.rand(batch_size, num_classes, nb, nb))
 
-# error = target - out
+for epoch in range(5):
+    out = model(input)
 
-# print('error', error)
+    loss = F.cross_entropy(out, target[:, 0])
 
-# Loss Computation
-loss = nn.L1Loss()
+    print ('Loss : ' + str(loss.data))
 
-output_loss = loss(out, target)
+    model.zero_grad()
+    loss.backward()
 
-print ('Loss : ' + str(output_loss.data))
+    opt.step()
