@@ -59,11 +59,13 @@ opt = optim.Adam(params=model.parameters(), lr=learning_rate)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
+cuda_activated = False
+
 for epoch in range(5):
 
     running_loss = 0.0
     for step, (images, targets) in enumerate(loader):
-        if args.cuda:
+        if cuda_activated:
             images = images.cuda()
             labels = labels.cuda()
 

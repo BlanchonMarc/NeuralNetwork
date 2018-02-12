@@ -34,4 +34,9 @@ Temporary Items
 
 *.pyc
 
+# Folders
+
+Datasets/Camvid/
+2_implementation/data/images/
+2_implementation/data/targets/
 # End of https://www.gitignore.io/api/macos

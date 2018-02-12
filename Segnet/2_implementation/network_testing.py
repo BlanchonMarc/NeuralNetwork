@@ -16,7 +16,7 @@ model = segnet(in_channels=input_size, n_classes=num_classes)
 opt = optim.Adam(params=model.parameters(), lr=learning_rate)
 
 
-for epoch in range(2):
+for epoch in range(1000):
     out = model(input)
 
     # Loss definition - cross entropy
