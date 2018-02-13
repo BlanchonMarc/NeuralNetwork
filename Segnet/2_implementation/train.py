@@ -47,13 +47,16 @@ loader = DataLoader(DatasetLoader('data/', input_transform=input_transform,
                     num_workers=workers,
                     batch_size=batch_size, shuffle=True)
 
-model = segnet(in_channels=3, n_classes=2)
+model = segnet(in_channels=3, n_classes=22)
 
 learning_rate = 0.0001
 
 opt = optim.Adam(params=model.parameters(), lr=learning_rate)
 
-criterion = nn.NLLLoss2d()
+weight = torch.ones(22)
+weight[0] = 0
+
+criterion = nn.NLLLoss2d(weight)
 optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 
 cuda_activated = False
@@ -66,18 +69,20 @@ for epoch in range(5):
             images = images.cuda()
             labels = labels.cuda()
 
-        images, targets = autograd.Variable(images), autograd.Variable(targets)
+        images = autograd.Variable(images)
+        targets = autograd.Variable(targets)
 
         optimizer.zero_grad()
 
         outputs = model(images)
-        loss = criterion(outputs, targets[:, 0])
+
+        loss = criterion(F.log_softmax(outputs, dim=3), targets[:, 0])
         loss.backward()
         optimizer.step()
 
         # print statistics
         running_loss += loss.data[0]
-        if i % 2000 == 1999:    # print every 2000 mini-batches
+        if step % 2000 == 1999:    # print every 2000 mini-batches
             print('[%d, %5d] loss: %.3f' %
                   (epoch + 1, i + 1, running_loss / 2000))
             running_loss = 0.0
