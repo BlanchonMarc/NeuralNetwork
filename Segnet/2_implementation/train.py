@@ -42,22 +42,19 @@ target_transform = Compose([
 workers = 2
 batch_size = 5
 
-loader = DataLoader(DatasetLoader('/data/', input_transform=input_transform,
+loader = DataLoader(DatasetLoader('data/', input_transform=input_transform,
                                target_transform=target_transform),
                     num_workers=workers,
                     batch_size=batch_size, shuffle=True)
 
-print(loader)
-exit()
-
-model = segnet(in_channels=1, n_classes=8)
+model = segnet(in_channels=3, n_classes=2)
 
 learning_rate = 0.0001
 
 opt = optim.Adam(params=model.parameters(), lr=learning_rate)
 
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+criterion = nn.NLLLoss2d()
+optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 
 cuda_activated = False
 
@@ -69,12 +66,12 @@ for epoch in range(5):
             images = images.cuda()
             labels = labels.cuda()
 
-        images, targets = Variable(images), Variable(targets)
+        images, targets = autograd.Variable(images), autograd.Variable(targets)
 
         optimizer.zero_grad()
 
-        outputs = net(inputs)
-        loss = criterion(outputs, labels)
+        outputs = model(images)
+        loss = criterion(outputs, targets[:, 0])
         loss.backward()
         optimizer.step()
 

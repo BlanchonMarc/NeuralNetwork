@@ -17,7 +17,7 @@ def is_image(filename):
 
 
 def image_path(root, basename, extension):
-    return os.path.join(root, f('{basename}{extension}'))
+    return os.path.join(root, basename + extension)
 
 
 def image_basename(filename):
@@ -40,7 +40,7 @@ class DatasetLoader(Dataset):
     def __getitem__(self, index):
         filename = self.filenames[index]
 
-        with open(image_path(self.images_root, filename, '.jpg'), 'rb') as f:
+        with open(image_path(self.images_root, filename, '.png'), 'rb') as f:
             image = load_image(f).convert('RGB')
         with open(image_path(self.labels_root, filename, '.png'), 'rb') as f:
             target = load_image(f).convert('P')
@@ -50,7 +50,7 @@ class DatasetLoader(Dataset):
         if self.target_transform is not None:
             target = self.target_transform(target)
 
-        return image, label
+        return image, target
 
     def __len__(self):
         return len(self.filenames)
