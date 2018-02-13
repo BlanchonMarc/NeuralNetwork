@@ -39,40 +39,40 @@ target_transform = Compose([
     Relabel(255, 21),
 ])
 
-workers = 4
-batch_size = 5
+workers = 20
+batch_size = 1
 n_classes = 22
 
-loader = DataLoader(DatasetLoader('data/', input_transform=input_transform,
+loader = DataLoader(DatasetLoader('/data/scene-segmentation/CamVid/', input_transform=input_transform,
                                target_transform=target_transform),
                     num_workers=workers,
                     batch_size=batch_size, shuffle=False)
 
 
 model = segnet(in_channels=3, n_classes=n_classes)
-
+model = torch.nn.DataParallel(model, device_ids=range(torch.cuda.device_count()))
+model.cuda()
 learning_rate = 0.0001
 
 opt = optim.Adam(params=model.parameters(), lr=learning_rate)
 
-weight = nn.init.xavier_normal(torch.Tensor(n_classes, 1),
-gain=nn.init.calculate_gain('relu'))
-# print(weight.size())
-# exit()
-# weight[0] = 0
+#weight = nn.init.xavier_normal(torch.Tensor(n_classes, 1).cuda(),
+#gain=nn.init.calculate_gain('relu'))
+weight = torch.ones(n_classes).cuda()
+weight[0] = 0
 
 criterion = nn.NLLLoss2d(weight)
 optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 
-cuda_activated = False
+cuda_activated = True
 
-for epoch in range(2):
+for epoch in range(100):
 
     running_loss = 0.0
     for step, (images, targets) in enumerate(loader):
         if cuda_activated:
             images = images.cuda()
-            labels = labels.cuda()
+            targets = targets.cuda()
 
         images = autograd.Variable(images)
         targets = autograd.Variable(targets)
@@ -88,7 +88,6 @@ for epoch in range(2):
         # print statistics
         running_loss = loss.data[0]
         print(running_loss)
-        exit()
         if step % 20 == 19:    # print every 2000 mini-batches
             print('[%d, %5d] loss: %.3f' %
                   (epoch + 1, step + 1, running_loss / 20))

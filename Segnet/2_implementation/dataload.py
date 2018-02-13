@@ -24,8 +24,8 @@ def image_basename(filename):
 class DatasetLoader(Dataset):
 
     def __init__(self, root, input_transform=None, target_transform=None):
-        self.images_root = os.path.join(root, 'images')
-        self.labels_root = os.path.join(root, 'targets')
+        self.images_root = os.path.join(root, 'train')
+        self.labels_root = os.path.join(root, 'trainannot')
 
         self.filenames = [os.path.basename(os.path.splitext(f)[0])
                           for f in os.listdir(self.labels_root) if is_image(f)]
