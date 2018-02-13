@@ -39,17 +39,21 @@ target_transform = Compose([
     Relabel(255, 21),
 ])
 
-workers = 2
-batch_size = 30
+workers = 4
+batch_size = 5
 n_classes = 22
 
 loader = DataLoader(DatasetLoader('data/', input_transform=input_transform,
                                target_transform=target_transform),
                     num_workers=workers,
-                    batch_size=batch_size, shuffle=True)
+                    batch_size=batch_size, shuffle=False)
 
 
 model = segnet(in_channels=3, n_classes=n_classes)
+
+learning_rate = 0.0001
+
+opt = optim.Adam(params=model.parameters(), lr=learning_rate)
 
 weight = torch.ones(n_classes)
 weight[0] = 0
@@ -65,7 +69,7 @@ for epoch in range(2):
     for step, (images, targets) in enumerate(loader):
         if cuda_activated:
             images = images.cuda()
-            targets = labels.cuda()
+            labels = labels.cuda()
 
         images = autograd.Variable(images)
         targets = autograd.Variable(targets)
@@ -75,7 +79,6 @@ for epoch in range(2):
         outputs = model(images)
 
         loss = criterion(F.log_softmax(outputs, dim=1), targets[:, 0])
-
         loss.backward()
         optimizer.step()
 
