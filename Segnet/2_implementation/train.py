@@ -55,8 +55,11 @@ learning_rate = 0.0001
 
 opt = optim.Adam(params=model.parameters(), lr=learning_rate)
 
-weight = torch.ones(n_classes)
-weight[0] = 0
+weight = nn.init.xavier_normal(torch.Tensor(n_classes, 1),
+gain=nn.init.calculate_gain('relu'))
+# print(weight.size())
+# exit()
+# weight[0] = 0
 
 criterion = nn.NLLLoss2d(weight)
 optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
@@ -85,6 +88,7 @@ for epoch in range(2):
         # print statistics
         running_loss = loss.data[0]
         print(running_loss)
+        exit()
         if step % 20 == 19:    # print every 2000 mini-batches
             print('[%d, %5d] loss: %.3f' %
                   (epoch + 1, step + 1, running_loss / 20))
