@@ -1,8 +1,3 @@
-'''
-Database Loader -> Master Class // Loading Data from Folder
-DatabaseTorch -> Sub Class // ``
-'''
-
 """Hyper Class to define a loader of images
 
 This module contains methods to create loaders of images.
@@ -171,7 +166,7 @@ class DatabaseTorch(DatabaseLoader):
        """Convert a dictionnary of toch.Tensor into a toch.Tensor.
 
        Sub-divide a dictionnary into a tensor considering sizes predefined.
-       
+
        Parameters
        ---------
        inds : int
