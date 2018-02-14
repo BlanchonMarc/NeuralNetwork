@@ -1,6 +1,6 @@
 """Hyper Class to define a Layer component of Neural Network
 
-This module contains methods to create loaders of images.
+This module contains the creation of different layers.
 
 The module structure is the following:
 
@@ -51,7 +51,7 @@ class SegnetLayer_Decoder(Layer):
     out_size : int
         The output size of the network.
 
-    layeer_size : int
+    layer_size : int
         The parameter defining the depth of the layer.
 
     References
@@ -75,7 +75,7 @@ class SegnetLayer_Decoder(Layer):
     def forward(self, inputs : torch.Tensor, indices : torch.Tensor,
                 output_shape : torch.Tensor ,
                 layer_size : int) -> torch.Tensor:
-    """Processing in Sequential - See PyTorch Doc"""
+        """Processing in Sequential - See PyTorch Doc"""
         if layer_size == 2:
             outputs = self.unpool(input=inputs, indices=indices,
                                   output_size=output_shape)
@@ -103,7 +103,7 @@ class SegnetLayer_Encoder(Layer):
     out_size : int
         The output size of the network.
 
-    layeer_size : int
+    layer_size : int
         The parameter defining the depth of the layer.
 
     References
@@ -127,9 +127,9 @@ class SegnetLayer_Encoder(Layer):
             self.maxpool_with_argmax = nn.MaxPool2d(2, 2, return_indices=True)
 
     def forward(self, inputs : torch.Tensor,
-                layer_size : torch.Tensor) -> torch.Tensor,
-                torch.Tensor, torch.Tensor:
-    """Processing in Sequential - See PyTorch Doc"""
+                layer_size : torch.Tensor) -> [torch.Tensor,
+                torch.Tensor, torch.Tensor]:
+        """Processing in Sequential - See PyTorch Doc"""
         if layer_size == 2:
             outputs = self.conv1(inputs)
             outputs = self.conv2(outputs)
@@ -175,7 +175,7 @@ class conv2DBatchNormRelu(Layer):
                 n_filters : torch.Tensor,k_size : int,
                 stride : int, padding : int, bias : bool = True,
                 dilation : int = 1) -> None:
-    """Preprocessing the Sequence"""
+        """Preprocessing the Sequence"""
         super().__init__()
 
         conv_mod = nn.Conv2d(int(in_channels), int(n_filters),

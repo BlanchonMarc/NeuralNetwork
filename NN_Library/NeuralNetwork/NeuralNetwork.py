@@ -1,3 +1,22 @@
+"""Hyper Class to define a Neural Network composed of Layers
+
+This module contains methods to create different Neural Networks
+
+The module structure is the following:
+
+- The ``NeuralNetwork`` abstract base class is the main definition of
+  the necessary functions in order to properly define a NeuralNetwork
+
+
+---------------------------------------------------------------------
+                              SEGNET
+            SegNet: A Deep Convolutional Encoder-Decoder
+                Architecture for Image Segmentation
+
+Vijay Badrinarayanan, Alex Kendall, Roberto Cipolla, Senior Member, IEEE
+
+- ``SegNet`` definition of the SegNet Architecture
+"""
 from .Layer import *
 import torch
 import torch.nn as nn
@@ -7,6 +26,7 @@ from torch import autograd, optim
 
 
 class NeuralNetwork(nn.Module):
+    """Abstract Base Class to ensure the optimal quantity of functions."""
     def __init__(self) -> None:
         super().__init__()
         pass
@@ -15,9 +35,24 @@ class NeuralNetwork(nn.Module):
         pass
 
 class SegNet(NeuralNetwork):
+    """Derived Class to define a Segnet Architecture of NN
 
-    def __init__(self):
-        super().__init__(in_channels, n_classes)
+    Attributes
+    ----------
+    in_channels : int
+        The input size of the network.
+
+    n_classes : int
+        The output size of the network.
+
+    References
+    ----------
+    SegNet: A Deep Convolutional Encoder-Decoder Architecture for Image Segmentation
+    Vijay Badrinarayanan, Alex Kendall, Roberto Cipolla, Senior Member, IEEE,
+    """
+    def __init__(self, in_channels : int, n_classes : int) -> None:
+        """Sequential Instanciation of the different Layers"""
+        super().__init__()
 
         self.layer_1 = SegnetLayer_Encoder(in_channels, 64, 2)
         self.layer_2 = SegnetLayer_Encoder(64, 128, 2)
@@ -31,7 +66,8 @@ class SegNet(NeuralNetwork):
         self.layer_9 = SegnetLayer_Decoder(128, 64, 2)
         self.layer_10 = SegnetLayer_Decoder(64, n_classes, 2)
 
-    def forward(self, inputs):
+    def forward(self, inputs : torch.Tensor) -> torch.Tensor:
+        """Sequential Computation, see nn.Module.forward methods PyTorch"""
 
         down1, indices_1, unpool_shape1 = self.layer_1(inputs=inputs,
                                                        layer_size=2)
