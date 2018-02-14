@@ -20,7 +20,7 @@ import os
 
 
 class DatabaseLoader:
-    """Abstract Base Class to ensure the optimal quantity of functions""""
+    """Abstract Base Class to ensure the optimal quantity of functions."""
     def __init__(self) -> None:
         """Default __init__ to optimize the number of saved arguments"""
         self.root = ''
@@ -37,7 +37,7 @@ class DatabaseLoader:
     def _to_tensor(self, inds : int, inde : int, ds : dict,
                    st = str) -> torch.Tensor:
        """Default private function to step-wise process data """
-        raise NotImplementedError
+       raise NotImplementedError
 
 
 class DatabaseTorch(DatabaseLoader):
@@ -95,7 +95,8 @@ class DatabaseTorch(DatabaseLoader):
                 'Incorrect path for validation folders selection')
         else:
             self.test_folders = test_folders
-
+        #Extract the # of files in folders as list in alphabetical
+        #order from the folder names
         self.sizes = [len(glob.glob1(root + next(
                     os.walk(root))[1][x] + '/', "*."+ ext))
                     for x in range(len(next(os.walk(root))[1]))]
@@ -110,7 +111,7 @@ class DatabaseTorch(DatabaseLoader):
 
 
     def __call__(self, batch_size : int = 1,
-                 shuffle : bool = True,
+                 shuffle : bool = False,
                  num_workers : int = 4) -> Dict[str, torch.Tensor]:
         """Process the data at call after initialization.
 
@@ -133,23 +134,19 @@ class DatabaseTorch(DatabaseLoader):
         parent_folder = self.root.split('/')[len(
             self.root.split('/'))-2] + '/'
         newroot = self.root.replace( parent_folder, '')
-
+        #create a dataset of images converted to Tensor from Folders
         image_datasets = {x: datasets.ImageFolder(os.path.join(
             newroot, x),transforms.ToTensor()) for x in [parent_folder]}
-
-        dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x],
-                                                      batch_size=batch_size,
-                                                      shuffle=shuffle,
-                                                      num_workers=num_workers)
-                       for x in [parent_folder]}
 
         dataset_sizes = [len(image_datasets[x]) for x in [parent_folder]]
 
         if not sum(self.sizes) == dataset_sizes[0]:
             raise NotImplementedError
 
+        #sort the name of folders to fit the sizes in self.sizes
         temporary_folders = sorted(self.train_folders + self.test_folders)
 
+        #for each folders and size, convert to tensor and push in dict
         inds = 0
         for key, conc in enumerate(zip(temporary_folders,self.sizes)):
             inde = inds + conc[1]
@@ -185,7 +182,7 @@ class DatabaseTorch(DatabaseLoader):
        -------
        output : torch.Tensor
        """
-        tmp_storage = []
-        for indx in range(inds,inde):
-            tmp_storage.append(ds[st][indx][0])
-        return torch.stack(tmp_storage)
+       tmp_storage = []
+       for indx in range(inds,inde):
+           tmp_storage.append(ds[st][indx][0])
+       return torch.stack(tmp_storage)
