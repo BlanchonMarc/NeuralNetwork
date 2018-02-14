@@ -65,6 +65,9 @@ def LoadData(data_dir='data', encapsulated_folders=['images', 'targets'],
 
     dataset_sizes = {x: len(image_datasets[x]) for x in encapsulated_folders}
 
+    print(dataset_sizes)
+    exit()
+
     # validation is embedded or not
     if not train_only:
         train_size = dataset_sizes[encapsulated_folders[0]] / 2
@@ -156,20 +159,20 @@ def LoadData(data_dir='data', encapsulated_folders=['images', 'targets'],
         return returning_array
 
 
-# train_only = False
-# train_first = True
-#
-# args = LoadData(train_only=train_only, train_first=train_first)
-#
-# train_inputs_dataset = args[0]
-# val_inputs_dataset = args[1]
-# train_targets_dataset = args[2]
-# val_targets_dataset = args[3]
-# train_size = args[4]
-# indx = args[5]
-#
-# print(train_inputs_dataset)
-# print(val_inputs_dataset)
+train_only = False
+train_first = True
+
+args = LoadData(train_only=train_only, train_first=train_first)
+
+train_inputs_dataset = args[0]
+val_inputs_dataset = args[1]
+train_targets_dataset = args[2]
+val_targets_dataset = args[3]
+train_size = args[4]
+indx = args[5]
+
+print(train_inputs_dataset)
+print(val_inputs_dataset)
 
 
 # image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x]) for x in encapsulated_folders}
@@ -178,7 +181,7 @@ def LoadData(data_dir='data', encapsulated_folders=['images', 'targets'],
 
 # print(next(os.walk('data/images/'))[1])
 
-data = [ datasets.ImageFolder(os.path.join('data/images'), transforms.ToTensor()) for x in next(os.walk('data/images/'))[1] if x == 'train']
-image_datasets = torch.utils.data.DataLoader(data[0])
-
-print(image_datasets)
+# data = [ datasets.ImageFolder(os.path.join('data/images'), transforms.ToTensor()) for x in next(os.walk('data/images/'))[1] if x == 'train']
+# image_datasets = torch.utils.data.DataLoader(data[0])
+#
+# print(image_datasets)
