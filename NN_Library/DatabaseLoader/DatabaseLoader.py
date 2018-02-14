@@ -92,7 +92,7 @@ class DatabaseTorch(DatabaseLoader):
 
         if False in folders_safety:
             raise AttributeError(
-                'Incorrect path for training folders selection')
+                'Incorrect path for validation folders selection')
         else:
             self.val_folders = val_folders
 
@@ -170,7 +170,7 @@ class DatabaseTorch(DatabaseLoader):
        Parameters
        ---------
        inds : int
-           The strating index.
+           The starting index.
 
        inds : bool
            The ending index.
@@ -179,7 +179,7 @@ class DatabaseTorch(DatabaseLoader):
            The dictionnary to sub-divide.
 
        st : str
-            The identifier to acces the dictionnary
+            The identifier to acces the dictionnary.
 
        Returns
        -------
