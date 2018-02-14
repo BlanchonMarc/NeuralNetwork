@@ -25,7 +25,7 @@ class DatabaseLoader:
         """Default __init__ to optimize the number of saved arguments"""
         self.root = ''
         self.train_folders = ''
-        self.val_folders = ''
+        self.test_folders = ''
         self.ext = ''
         self.sizes = []
         self.output = {}
@@ -60,7 +60,7 @@ class DatabaseTorch(DatabaseLoader):
         The list of subfolders containing the inputs data
         Commonly this List will contain [(1), (2), (3)]
 
-    val_folders : List[str]
+    test_folders : List[str]
         The list of subfolders containing the validation data
         Commonly this List will contain [(4), (5), (6)]
 
@@ -69,7 +69,7 @@ class DatabaseTorch(DatabaseLoader):
         Commonly "png", "jpg", "tiff" ...
     """
     def __init__(self, root : str, train_folders : List[str],
-                 val_folders : List[str], ext : str = 'png') -> None:
+                 test_folders : List[str], ext : str = 'png') -> None:
         '''Initialization throwing errors for incorrect/incoherent parameters'''
         super().__init__()
         if os.path.isdir(root):
@@ -88,23 +88,23 @@ class DatabaseTorch(DatabaseLoader):
             self.train_folders = train_folders
 
         folders_safety = [os.path.isdir(root + folder)
-                         for folder in val_folders]
+                         for folder in test_folders]
 
         if False in folders_safety:
             raise AttributeError(
                 'Incorrect path for validation folders selection')
         else:
-            self.val_folders = val_folders
+            self.test_folders = test_folders
 
         self.sizes = [len(glob.glob1(root + next(
                     os.walk(root))[1][x] + '/', "*."+ ext))
                     for x in range(len(next(os.walk(root))[1]))]
 
         if not len(next(os.walk(root))[1]) == len(
-            train_folders + val_folders):
+            train_folders + test_folders):
             raise AttributeError('#folder in ' + root + ' = ' + str(len(
                 next(os.walk(root))[1])) + ' while #folder as input = ' + str(
-                    len(self.train_folders + self.val_folders)))
+                    len(self.train_folders + self.test_folders)))
 
         self.output = {}
 
@@ -148,7 +148,7 @@ class DatabaseTorch(DatabaseLoader):
         if not sum(self.sizes) == dataset_sizes[0]:
             raise NotImplementedError
 
-        temporary_folders = sorted(self.train_folders + self.val_folders)
+        temporary_folders = sorted(self.train_folders + self.test_folders)
 
         inds = 0
         for key, conc in enumerate(zip(temporary_folders,self.sizes)):
