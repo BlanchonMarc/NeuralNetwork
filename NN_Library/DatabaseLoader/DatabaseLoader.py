@@ -22,7 +22,8 @@ class DatabaseLoader:
     def __call__(self) -> Dict[str, torch.Tensor]:
         raise NotImplementedError
 
-    def _to_tensor(self, inds : int, inde : int, ds : dict) -> torch.Tensor:
+    def _to_tensor(self, inds : int, inde : int, ds : dict,
+                   st = str) -> torch.Tensor:
         raise NotImplementedError
 
 
@@ -81,8 +82,8 @@ class DatabaseTorch(DatabaseLoader):
             self.root.split('/'))-2] + '/'
         newroot = self.root.replace( parent_folder, '')
 
-        image_datasets = {x: datasets.ImageFolder(os.path.join(newroot, x))
-                          for x in [parent_folder]}
+        image_datasets = {x: datasets.ImageFolder(os.path.join(
+            newroot, x),transforms.ToTensor()) for x in [parent_folder]}
 
         dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x],
                                                       batch_size=batch_size,
@@ -98,28 +99,20 @@ class DatabaseTorch(DatabaseLoader):
         temporary_folders = sorted(self.train_folders + self.val_folders)
 
         inds = 0
+        print(zip(temporary_folders,self.sizes))
         for key, conc in enumerate(zip(temporary_folders,self.sizes)):
-            inde = conc[1]
+            inde = inds + conc[1]
             _conc = conc[0].replace('/', '')
-            self.output[_conc] = self._to_tensor(inds = inds, inde = inde, ds = image_datasets)
+            self.output[_conc] = self._to_tensor(inds = inds,
+                                                 inde = inde,
+                                                 ds = image_datasets,
+                                                 st = parent_folder)
             inds = inde
+        return self.output
 
-            print('key, size ' + str(conc[1]))
-
-        print(sorted(temporary_folders))
-        print(self.sizes)
-        print(sum(self.sizes))
-        print(dataset_sizes)
-
-    def _to_tensor(self, inds : int, inde : int, ds : dict) -> torch.Tensor:
-        pass
-
-
-
-# Testing procedure
-root_dataset = '../../Datasets/CamVid/'
-inputs = ['train/', 'val/', 'test/']
-checkings = ['trainannot/', 'valannot/', 'testannot/']
-Db = DatabaseTorch(root=root_dataset, train_folders=inputs, val_folders=checkings)
-
-Db(batch_size = 1, shuffle = True, num_workers = 4)
+    def _to_tensor(self, inds : int, inde : int, ds : dict,
+                   st : str) -> torch.Tensor:
+        tmp_storage = []
+        for indx in range(inds,inde):
+            tmp_storage.append(ds[st][indx][0])
+        return torch.stack(tmp_storage)
