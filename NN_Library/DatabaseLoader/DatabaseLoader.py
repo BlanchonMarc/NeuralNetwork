@@ -14,6 +14,7 @@ The module structure is the following:
 
 from typing import List, Dict
 import torch
+import torchvision
 from torchvision import datasets, models, transforms
 import glob
 import os
@@ -34,8 +35,8 @@ class DatabaseLoader:
         """Default __call__ returning the converted dataset """
         raise NotImplementedError
 
-    def _to_tensor(self, inds : int, inde : int, ds : dict,
-                   st = str) -> torch.Tensor:
+    def _to_tensor(self, inds : int, inde : int,
+                   ds : List[torch.Tensor]) -> torch.Tensor:
        """Default private function to step-wise process data """
        raise NotImplementedError
 
@@ -140,6 +141,15 @@ class DatabaseTorch(DatabaseLoader):
 
         dataset_sizes = [len(image_datasets[x]) for x in [parent_folder]]
 
+        #usage of dataloader to adopt the possibility of multi threading
+        tmp_dataloaders = []
+        for ind in range(sum(dataset_sizes)):
+            tmp_dataloaders.append( torch.utils.data.DataLoader(
+                                    image_datasets[parent_folder][ind][0],
+                                    batch_size=batch_size,
+                                    shuffle=shuffle,
+                                    num_workers=num_workers))
+
         if not sum(self.sizes) == dataset_sizes[0]:
             raise NotImplementedError
 
@@ -153,13 +163,12 @@ class DatabaseTorch(DatabaseLoader):
             _conc = conc[0].replace('/', '')
             self.output[_conc] = self._to_tensor(inds = inds,
                                                  inde = inde,
-                                                 ds = image_datasets,
-                                                 st = parent_folder)
+                                                 ds = tmp_dataloaders)
             inds = inde
         return self.output
 
-    def _to_tensor(self, inds : int, inde : int, ds : dict,
-                   st : str) -> torch.Tensor:
+    def _to_tensor(self, inds : int, inde : int,
+                   ds : List[torch.Tensor]) -> torch.Tensor:
        """Convert a dictionnary of toch.Tensor into a toch.Tensor.
 
        Sub-divide a dictionnary into a tensor considering sizes predefined.
@@ -172,11 +181,8 @@ class DatabaseTorch(DatabaseLoader):
        inds : bool
            The ending index.
 
-       ds: int
-           The dictionnary to sub-divide.
-
-       st : str
-            The identifier to acces the dictionnary.
+       ds: List[dataloaders]
+           The list to sub-divide.
 
        Returns
        -------
@@ -184,5 +190,5 @@ class DatabaseTorch(DatabaseLoader):
        """
        tmp_storage = []
        for indx in range(inds,inde):
-           tmp_storage.append(ds[st][indx][0])
+           tmp_storage.append(next(iter(ds[indx])))
        return torch.stack(tmp_storage)

@@ -65,8 +65,6 @@ def LoadData(data_dir='data', encapsulated_folders=['images', 'targets'],
 
     dataset_sizes = {x: len(image_datasets[x]) for x in encapsulated_folders}
 
-    print(dataset_sizes)
-    exit()
 
     # validation is embedded or not
     if not train_only:
