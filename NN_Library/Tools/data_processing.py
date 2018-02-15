@@ -18,7 +18,7 @@ The module structure is the following:
   contained into a List following the mentionned dimension as argument
    of the function
 
-  Example:
+  Examples:
   List = [torch.Tensor(1x3x10x10) , torch.Tensor(1x3x10x10)]
 
   tensor_ConcatFromList(ds = List, dim = 0)
