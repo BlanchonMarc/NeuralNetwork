@@ -24,6 +24,11 @@ The module structure is the following:
   tensor_ConcatFromList(ds = List, dim = 0)
     |_ returning : torch.Tensor(2x3x10x10)
 
+  tensor_ConcatFromList(ds = List, dim = 1)
+    |_ returning : torch.Tensor(1x6x10x10)
+
+  . . .
+
 
 """
 
