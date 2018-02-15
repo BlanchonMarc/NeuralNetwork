@@ -14,9 +14,17 @@ The module structure is the following:
   tensor_ConcatFromDict(ds = Dict, inds = ['1','2'], dim = 0)
     |_ returning : torch.Tensor(2x3x10x10)
 
-- ``DatabaseTorch`` implements is a derived class that use PyTorch to
-  load images from a folder containing a dataset and convert those image
-  into torch.Tensor format
+- The ``tensor_ConcatFromList`` function to concatenate N tensors
+  contained into a List following the mentionned dimension as argument
+   of the function
+
+  Example:
+  List = [torch.Tensor(1x3x10x10) , torch.Tensor(1x3x10x10)]
+
+  tensor_ConcatFromList(ds = List, dim = 0)
+    |_ returning : torch.Tensor(2x3x10x10)
+
+
 """
 
 import torch
@@ -48,5 +56,31 @@ def tensor_ConcatFromDict(ds : Dict[str, torch.Tensor],
     # the update / concatenation
     for indx in range(1,len(inds)):
         torch.cat((_storage, ds[inds[indx]]), dim)
+
+    return _storage
+
+
+def tensor_ConcatFromList(ds : List[torch.Tensor],
+                          dim : int = 0) -> torch.Tensor:
+    """Function performing torch.Tensor Concatenation
+
+    Parameters
+    ---------
+    ds : List[torch.Tensor]
+        The Collection of inputs.
+
+    dim: int
+        The dimension of concatenation.
+
+    Returns
+    -------
+    _storage : torch.Tensor
+        The resulting Tensor concatenated
+    """
+    # the storer
+    _storage = ds[0]
+    # the update / concatenation
+    for indx in range(1,len(ds)):
+        torch.cat((_storage, ds[indx]), dim)
 
     return _storage
