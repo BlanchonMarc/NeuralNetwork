@@ -13,11 +13,12 @@ The module structure is the following:
 """
 
 from typing import List, Dict
+import datetime
+import glob
+import os
 import torch
 import torchvision
 from torchvision import datasets, models, transforms
-import glob
-import os
 
 
 class DatabaseLoader:
@@ -142,13 +143,12 @@ class DatabaseTorch(DatabaseLoader):
         dataset_sizes = [len(image_datasets[x]) for x in [parent_folder]]
 
         #usage of dataloader to adopt the possibility of multi threading
-        tmp_dataloaders = []
-        for ind in range(sum(dataset_sizes)):
-            tmp_dataloaders.append( torch.utils.data.DataLoader(
-                                    image_datasets[parent_folder][ind][0],
-                                    batch_size=batch_size,
-                                    shuffle=shuffle,
-                                    num_workers=num_workers))
+        tmp_dataloaders = [torch.utils.data.DataLoader(
+                                image_datasets[parent_folder][ind][0],
+                                batch_size=batch_size,
+                                shuffle=shuffle,
+                                num_workers=num_workers)
+                           for ind in range(sum(dataset_sizes))]
 
         if not sum(self.sizes) == dataset_sizes[0]:
             raise NotImplementedError
@@ -165,6 +165,7 @@ class DatabaseTorch(DatabaseLoader):
                                                  inde = inde,
                                                  ds = tmp_dataloaders)
             inds = inde
+
         return self.output
 
     def _to_tensor(self, inds : int, inde : int,
@@ -188,7 +189,5 @@ class DatabaseTorch(DatabaseLoader):
        -------
        output : torch.Tensor
        """
-       tmp_storage = []
-       for indx in range(inds,inde):
-           tmp_storage.append(next(iter(ds[indx])))
-       return torch.stack(tmp_storage)
+       return torch.stack([next(iter(ds[indx]))
+                           for indx in range(inds,inde)])
